@@ -42,19 +42,18 @@ def generate_response(input_text):
             temperature=TEMPERATURE,
             top_p=TOP_P,
             repetition_penalty=REPETITION_PENALTY,
-            do_sample=True,  # Enable sampling
+            do_sample=True,
             pad_token_id=tokenizer.eos_token_id,
-            eos_token_id=tokenizer.eos_token_id  # Use eos_token_id to stop generation
+            eos_token_id=tokenizer.eos_token_id
         )
 
         generated_text = tokenizer.decode(output[0], skip_special_tokens=True, clean_up_tokenization_spaces=True)
 
-        # Enhance the response to prevent truncation
+        # Ensure the response ends with a stop token
         if not any(generated_text.endswith(stop_token) for stop_token in STOP_TOKENS):
-            # If the text does not end with a proper stop token, regenerate
             output = model.generate(
                 input_ids,
-                max_length=max_length + 200,  # Increase length for safety
+                max_length=max_length + 100,  # Increase length if needed
                 num_return_sequences=1,
                 temperature=TEMPERATURE,
                 top_p=TOP_P,
@@ -67,11 +66,11 @@ def generate_response(input_text):
 
         # Check for inappropriate content
         if any(word in generated_text.lower() for word in INAPPROPRIATE_WORDS):
-            return "The generated text contains inappropriate content. Please try again with a different input."
+            return "Sorry, the response contains inappropriate content. Please try another input."
 
-        return generated_text
+        return generated_text.strip()
     except Exception as e:
-        return f"Error: {str(e)}"
+        return f"An error occurred: {str(e)}"
 
 @app.route('/')
 def index():
